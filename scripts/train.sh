@@ -1,4 +1,7 @@
-python ./open_flamingo/prompt_optimization/manager.py \
+export PYTHONPATH="../..:$PYTHONPATH"
+export CUDA_VISIBLE_DEVICES=1
+
+python ./prompt_optimization/manager.py \
 --output_dir ./ \
 --steps 5 \
 --rices \

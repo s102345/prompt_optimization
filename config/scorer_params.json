@@ -1,13 +1,13 @@
 {
-    "vision_encoder_path": "ViT-L-14",
-    "vision_encoder_pretrained": "openai",
-    "lm_path": "anas-awadalla/mpt-1b-redpajama-200b-dolly",
-    "lm_tokenizer_path": "anas-awadalla/mpt-1b-redpajama-200b-dolly",
-    "checkpoint_path": "C:\\Users\\Xuan\\Desktop\\Program\\open_flamingo\\open_flamingo\\prompt_optimization\\data\\OpenFlamingo-3B-vitl-mpt1b-langinstruct.pt",
-    "device": "cuda:0",
-    "cross_attn_every_n_layers": 1,
-    "rices": false,
-    "cached_demonstration_features": "C:\\Users\\Xuan\\Desktop\\Program\\open_flamingo\\open_flamingo\\prompt_optimization\\data/RICES-features",
+    "coco_train_image_dir_path": "",
+    "coco_val_image_dir_path": "",
+    "coco_karpathy_json_path": "",
+    "coco_annotations_json_path": "",
+    "model_path": "",
+    "checkpoint_path": "",    
+    "precision": "fp16",
+    "rices": true,
+    "cached_demonstration_features": "",
     "num_samples": -1,
     "shots": [
         0,
@@ -17,14 +17,5 @@
         32
     ],
     "num_trials": 1,
-    "trial_seeds": [
-        42
-    ],
-    "coco_train_image_dir_path": "C:\\Users\\Xuan\\Desktop\\Program\\open_flamingo\\open_flamingo\\prompt_optimization\\data/train2014",
-    "coco_val_image_dir_path": "C:\\Users\\Xuan\\Desktop\\Program\\open_flamingo\\open_flamingo\\prompt_optimization\\data/prompt_train2014",
-    "coco_karpathy_json_path": "C:\\Users\\Xuan\\Desktop\\Program\\open_flamingo\\open_flamingo\\prompt_optimization\\data/prompt_karpathy_coco.json",
-    "coco_annotations_json_path": "C:\\Users\\Xuan\\Desktop\\Program\\open_flamingo\\open_flamingo\\prompt_optimization\\data/captions_train2014.json",
-    "precision": "fp32",
-    "batch_size": 2,
-    "is_distributed": false
+    "batch_size": 2
 }

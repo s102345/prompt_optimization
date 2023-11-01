@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 import openai
 import os, json, re
-from appdata import root
+from utils.appdata import root
 
 class Optimizer():
     def __init__(self):

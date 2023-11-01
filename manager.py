@@ -7,10 +7,10 @@ os.environ["MASTER_ADDR"] = 'localhost'
 os.environ["MASTER_PORT"] = '29500'
 
 from scorer import Scorer
-import prompt_utils 
+import utils.prompt_utils as prompt_utils 
 from meta_prompt import MetaPromptGenerator
 from optimizer import Optimizer
-from appdata import root, path
+from utils.appdata import root, path
 import wandb
 from statistics import mean
 
@@ -19,19 +19,15 @@ def get_args():
 
     # General parameters
     parser.add_argument('--output_dir', type=str, default="./", help='Output directory')
-    parser.add_argument('--is_distributed', action='store_true', help='If execute on Windows platform, set this to False')
+    parser.add_argument('--precision', type=str, default="fp16", help='Precision of model')
     parser.add_argument('--seed', default=None, type=int, help='Random seed')
     parser.add_argument('--detailed_log', type=int, default=-1, help='Output detailed prompt or not')
 
     # Model parameters
-    parser.add_argument('--model_name_or_path', type=str, default="OpenFlamingo-3B-vitl-mpt1b-langinstruct", help='Model name or path')
     parser.add_argument('--rices', action='store_true', help='Use rices to evaluate score or not')
     parser.add_argument("--shots", nargs="+", default=[0, 4, 8, 16, 32], type=int)
     parser.add_argument("--num_samples", type=int, default=-1, help="Number of samples to evaluate on. -1 for all samples.")
     parser.add_argument("--num_trials", type=int, default=1, help="Number of trials to run for each shot using different demonstrations")
-    parser.add_argument("--cross_attn_every_n_layers", type=int, default=1, help="Cross-attention every n layers")
-    parser.add_argument("--lm_path", type=str, default="anas-awadalla/mpt-1b-redpajama-200b-dolly", help="Path to LLM")
-    parser.add_argument("--lm_tokenizer_path", type=str, default="anas-awadalla/mpt-1b-redpajama-200b-dolly", help="Path to the tokenizer")
 
     # Training parameters
     parser.add_argument('--steps', type=int, default=200, help='Number of steps')
@@ -43,9 +39,7 @@ def get_args():
     parser.add_argument('--example_number', type=int, default=3, help='Example amount in each optimization task')
     parser.add_argument('--maximum_prompt_score_pair', type=int, default=20, help='Maximum number of prompt-score pair in meta prompt')
     parser.add_argument('--example_rule', type=str, default="rices", help='The way of choosing other examples in each optimization task')
-    #parser.add_argument('--caption_number', type=int, default=1, help='Caption amount of example in meta prompt')
     parser.add_argument('--extra_information', default=True, action="store_true", help='Extra information of image in meta prompt')
-    parser.add_argument('--round_off', type=int, default=2, help='Round off score in meta prompt')
 
     return parser.parse_args()
 
@@ -55,8 +49,7 @@ class Manager():
         
         print("Initializing...")
         prompt_utils.make_dataset()
-        prompt_utils.download_checkpoint(self.args.model_name_or_path)
-        prompt_utils.update_path(self.args.model_name_or_path)
+        prompt_utils.update_path()
         prompt_utils.update_scorer_args(self.args)
         prompt_utils.rices_setup()
 
@@ -64,9 +57,8 @@ class Manager():
         self.optimizer = Optimizer()
 
         #Log
-        wandb.init(project="open-flamingo")
+        wandb.init(project="Optimization by PROmpting")
         config = {
-            "scorer_model": self.args.model_name_or_path,
             "scorer_rices": self.args.rices,
             "scorer_shots": self.args.shots,
             "scorer_num_trials": self.args.num_trials,
@@ -100,12 +92,15 @@ class Manager():
             meta_prompt = self.metaPromptGenerator.generate_meta_prompt()
             # Use meta-prompt to generate solutions
             solutions = []
+            scores = []
             self.optimizer.init()
+
             for j in range(self.args.instruction_per_step):
                 sol = self.optimizer.generate(meta_prompt)
                 solutions.append(sol)
-            # Use solutions to get scores
-            scores = self.scorer.evaluate(solutions)
+                score = self.scorer.evaluate(sol)
+                scores.append(score)
+                
             prompt_score_pair = self.make_prompt_score_pair(solutions, scores)
             self.metaPromptGenerator.update_meta_prompt(prompt_score_pair)
 

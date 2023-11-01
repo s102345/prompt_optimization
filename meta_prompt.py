@@ -2,9 +2,8 @@ import os
 import json
 import sys
 import random, time
-from appdata import root
-from sampler import Sampler
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'eval'))
+from utils.appdata import root
+from utils.sampler import Sampler
 
 class MetaPromptGenerator():
     def __init__(self, args, score_pair):
@@ -57,7 +56,7 @@ class MetaPromptGenerator():
         record = set()
         for key, score in pair_dict.items():
             if key not in record:
-                new_pair.append({'Prompt': key, 'Score': round(score, self.args.round_off)})
+                new_pair.append({'Prompt': key, 'Score': round(score, 2)})
                 record.add(key)
 
         # Save pairs
