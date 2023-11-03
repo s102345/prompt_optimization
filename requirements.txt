@@ -11,7 +11,7 @@ numpy
 open_clip_torch
 opencv_python_headless
 Pillow
-pycocoevalcap
+fire
 pycocotools
 Requests
 tqdm

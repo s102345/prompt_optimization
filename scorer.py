@@ -12,10 +12,6 @@ from eval.evaluate import main as evaluate_main
 class Scorer():
     def __init__(self, args):
         print("Start scorer initializing!")
-        # Set environment variables
-        os.environ["PYTHONPATH"] = "../..:$PYTHONPATH"
-        os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-
         # Load configs
         self.configs = json.load(open(f'{root}/config/scorer_params.json'))
 
