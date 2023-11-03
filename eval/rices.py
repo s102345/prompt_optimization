@@ -2,7 +2,7 @@ import open_clip
 import torch
 from tqdm import tqdm
 import torch
-from utils import custom_collate_fn
+from .eval_utils import custom_collate_fn
 
 
 class RICES:

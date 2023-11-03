@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 import openai
 import os, json, re
-from utils.appdata import root
+from appdata import root
 
 class Optimizer():
     def __init__(self):
@@ -10,10 +10,10 @@ class Optimizer():
         self.init()
         
     def init(self):
-        print("Optimizer initialized!")
         if not os.path.exists(f'{root}/tmp'):
             os.mkdir(f'{root}/tmp')
         json.dump([], open(f'{root}/tmp/solutions.json', 'w'))
+        print("Optimizer initialized!")
 
     def generate(self, meta_prompt):
         messages = [

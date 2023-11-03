@@ -1,11 +1,11 @@
 export PYTHONPATH="../..:$PYTHONPATH"
 export CUDA_VISIBLE_DEVICES=1
 
-python ./prompt_optimization/manager.py \
+python manager.py \
 --output_dir ./ \
+--shots 2 \
+--num_samples 200 \
 --steps 5 \
---rices \
---shots 0 \
 --example_rule "rand" \
 --initial_prompt "Output: " \
 --extra_information \

@@ -18,6 +18,7 @@ from tqdm import tqdm
 from .eval_model import BaseEvalModel
 from .distributed import init_distributed_device, world_info_from_env
 
+from .eval_utils import compute_effective_num_shots, get_query_set, prepare_eval_samples, sample_batch_demos_from_query_set, merge_args
 from .rices import RICES
 
 parser = argparse.ArgumentParser()
@@ -59,7 +60,7 @@ parser.add_argument(
 )
 parser.add_argument("--query_set_size", type=int, default=2048, help="Size of demonstration query set")
 
-parser.add_argument("--batch_size", type=int, default=8)
+parser.add_argument("--batch_size", type=int, default=2)
 
 parser.add_argument(
     "--prompt",
@@ -174,10 +175,10 @@ parser.add_argument(
     help="Don't set device index from local rank (when CUDA_VISIBLE_DEVICES restricted to one per proc).",
 )
 
-def main():
-    args, leftovers = parser.parse_known_args()
-    module = importlib.import_module(f"pipeline.eval.models.{args.model}")
-
+def main(input_args, eval_model: BaseEvalModel):
+    old_args, leftovers = parser.parse_known_args()
+    # module = importlib.import_module(f"eval.models.{args.model}")
+    args = merge_args(old_args, input_args)
     # print("======================================")
     # print(args)
     # print("======================================")
@@ -185,13 +186,11 @@ def main():
     # print("======================================")
 
     # set up distributed evaluation
-    model_args = {leftover.lstrip("-").split("=")[0]: leftover.split("=")[1] for leftover in leftovers}
+    # model_args = {leftover.lstrip("-").split("=")[0]: leftover.split("=")[1] for leftover in leftovers}
     args.local_rank, args.rank, args.world_size = world_info_from_env()
     device_id = init_distributed_device(args)
 
-    prompt = args.prompt
-
-    eval_model = module.EvalModel(model_args)
+    #eval_model = module.EvalModel(model_args)
     eval_model.set_device(device_id)
     if device_id != torch.device("cpu") and args.world_size > 1:
         eval_model.init_distributed()
@@ -228,7 +227,7 @@ def main():
                     min_generation_length=0,
                     max_generation_length=128,
                     num_beams=3,
-                    prompt=prompt,
+                    prompt=args.prompt,
                 )
                 if args.rank == 0:
                     print(f"Shots {shot} Trial {trial} CIDEr score: {cider_score}")
@@ -248,7 +247,7 @@ def main():
         # load cached demonstration features for RICES
         if args.cached_demonstration_features is not None:
             cached_features = torch.load(
-                f"{args.cached_demonstration_features}/flickr30.pkl", map_location="cpu"
+                f"{args.cached_demonstration_features}/coco.pkl", map_location="cpu"
             )
         else:
             cached_features = None
@@ -266,7 +265,7 @@ def main():
                     min_generation_length=0,
                     max_generation_length=64,
                     num_beams=3,
-                    prompt=prompt,
+                    prompt=args.prompt,
                 )
                 if args.rank == 0:
                     print(f"Shots {shot} Trial {trial} CIDEr score: {cider_score}")
@@ -282,53 +281,12 @@ def main():
     if args.rank == 0 and args.results_file is not None:
         with open(args.results_file, "w") as f:
             json.dump(results, f)
-
-def get_random_indices(num_samples, query_set_size, full_dataset, seed):
-    if num_samples + query_set_size > len(full_dataset):
-        raise ValueError(f"num_samples + query_set_size must be less than {len(full_dataset)}")
-
-    # get a random subset of the dataset
-    np.random.seed(seed)
-    random_indices = np.random.choice(len(full_dataset), num_samples + query_set_size, replace=False)
-    return random_indices
-
-
-def get_query_set(train_dataset, query_set_size, seed):
-    np.random.seed(seed)
-    query_set = np.random.choice(len(train_dataset), query_set_size, replace=False)
-    return [train_dataset[i] for i in query_set]
-
-
-def prepare_eval_samples(test_dataset, num_samples, batch_size, seed):
-    np.random.seed(seed)
-    random_indices = np.random.choice(len(test_dataset), num_samples, replace=False)
-    dataset = torch.utils.data.Subset(test_dataset, random_indices)
-    sampler = torch.utils.data.distributed.DistributedSampler(dataset)
-    loader = torch.utils.data.DataLoader(
-        dataset,
-        batch_size=batch_size,
-        sampler=sampler,
-        collate_fn=custom_collate_fn,
-    )
-    return loader
-
-
-def sample_batch_demos_from_query_set(query_set, num_samples, batch_size):
-    return [random.sample(query_set, num_samples) for _ in range(batch_size)]
-
-
-def compute_effective_num_shots(num_shots, model_type):
-    if model_type == "open_flamingo":
-        return num_shots if num_shots > 0 else 2
-    return num_shots
-
-
-def custom_collate_fn(batch):
-    collated_batch = {}
-    for key in batch[0].keys():
-        collated_batch[key] = [item[key] for item in batch]
-    return collated_batch
-
+    
+    if args.rank == 0:
+        if args.eval_coco:
+            return results['coco'][0]['mean']
+        if args.eval_flickr30:
+            return results[0]['flickr30']['mean']
 
 def evaluate_captioning(
     args: argparse.Namespace,

@@ -4,10 +4,10 @@ from PIL import Image
 import torch
 import transformers
 
-from pipeline.eval.eval_model import BaseEvalModel
+from eval.eval_model import BaseEvalModel
 from contextlib import suppress
-from pipeline.eval.models.utils import unwrap_model
-from otter_ai import OtterForConditionalGeneration
+from eval.models.utils import unwrap_model
+from .modeling_otter import OtterForConditionalGeneration
 import os
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"

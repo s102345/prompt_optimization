@@ -2,7 +2,7 @@ import os
 import json
 import sys
 import random, time
-from utils.appdata import root
+from appdata import root
 from utils.sampler import Sampler
 
 class MetaPromptGenerator():
@@ -31,6 +31,7 @@ class MetaPromptGenerator():
         json.dump(default_meta_prompt, open(f'{root}/tmp/meta_prompt.json', 'w'), indent=4) # Tmp of meta-prompt
         # Init meta-prompt
         self.update_meta_prompt(score_pair)
+        print("Meta-prompt initialized!")
     
     def update_score_pair(self, pair: list):
         # Read old prompt

@@ -1,5 +1,5 @@
 from utils.clip_filter import clip_filter
-from utils.appdata import root
+from appdata import root
 import os, json, random, shutil, time
 
 class Sampler():

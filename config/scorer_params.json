@@ -1,21 +1,9 @@
 {
-    "coco_train_image_dir_path": "",
-    "coco_val_image_dir_path": "",
-    "coco_karpathy_json_path": "",
-    "coco_annotations_json_path": "",
-    "model_path": "",
-    "checkpoint_path": "",    
-    "precision": "fp16",
-    "rices": true,
-    "cached_demonstration_features": "",
-    "num_samples": -1,
-    "shots": [
-        0,
-        4,
-        8,
-        16,
-        32
-    ],
-    "num_trials": 1,
-    "batch_size": 2
+    "coco_train_image_dir_path": "/home/s102345/Programs/prompt_optimization/data/train2014",
+    "coco_val_image_dir_path": "/home/s102345/Programs/prompt_optimization/data/train2014",
+    "coco_karpathy_json_path": "/home/s102345/Programs/prompt_optimization/data/karpathy_coco.json",
+    "coco_annotations_json_path": "/home/s102345/Programs/prompt_optimization/data/captions_train2014.json",
+    "model_path": "/home/s102345/Programs/prompt_optimization/checkpoints/OTTER-Image-MPT7B",
+    "checkpoint_path": "/home/s102345/Programs/prompt_optimization/checkpoints/OTTER-Image-MPT7B/final_weights.pt",
+    "cached_demonstration_features": "/home/s102345/Programs/prompt_optimization/data/RICES-features"
 }

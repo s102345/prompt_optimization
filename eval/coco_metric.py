@@ -1,4 +1,4 @@
-from pycocoevalcap.eval import COCOEvalCap
+from .coco_cap.eval import COCOEvalCap
 from pycocotools.coco import COCO
 
 

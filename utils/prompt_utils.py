@@ -1,9 +1,9 @@
 import wget, gdown, os
 import zipfile
 import json
-from huggingface_hub import hf_hub_download
+from huggingface_hub import snapshot_download
 import pandas as pd
-from utils.appdata import root, path
+from appdata import root, path
 
 def download_files():
     if not os.path.exists(path):
@@ -50,9 +50,9 @@ def download_files():
         gdown.download(file_links['rices_features'], f'{path}/RICES-features/coco.pkl', quiet=False)
 
     # Download the model 
-    if not os.path.exists(f'{root}/checkpoints/OTTER-Image-MPT7B'):
-        print("Downloading OTTER-Image-MPT7B...")
-        hf_hub_download(f'{root}/checkpoints/OTTER-Image-MPT7B', 'luodian/OTTER-Image-MPT7B', use_auth_token=True)
+    #if not os.path.exists(f'{root}/checkpoints/OTTER-Image-MPT7B'):
+    print("Downloading OTTER-Image-MPT7B...")
+    snapshot_download(local_dir=f'{root}/checkpoints/OTTER-Image-MPT7B', repo_id='luodian/OTTER-Image-MPT7B', resume_download=True)
 
 def make_dataset():
     print("Downloading files...")
@@ -62,26 +62,14 @@ def make_dataset():
 def update_path():
     #Update path to abs 
     scorer_params = json.load(open(f'{root}/config/scorer_params.json'))
-    scorer_params['model_path'] = os.path.join(path, 'checkpoints', 'OTTER-Image-MPT7B')
-    scorer_params['checkpoint_path'] = os.path.join(path, 'checkpoints', 'OTTER-Image-MPT7B', 'final_weight.pt')
+    scorer_params['model_path'] = os.path.join(root, 'checkpoints', 'OTTER-Image-MPT7B')
+    scorer_params['checkpoint_path'] = os.path.join(root, 'checkpoints', 'OTTER-Image-MPT7B', 'final_weights.pt')
     scorer_params['coco_train_image_dir_path'] = f"{path}/train2014"
     scorer_params["coco_val_image_dir_path"] = f"{path}/train2014"
     scorer_params["coco_karpathy_json_path"] = f"{path}/karpathy_coco.json"
     scorer_params["coco_annotations_json_path"] = f"{path}/captions_train2014.json"
     scorer_params["cached_demonstration_features"] = f"{path}/RICES-features"
     json.dump(scorer_params, open(f'{root}/config/scorer_params.json', 'w'), indent=4)
-
-def update_scorer_args(args):
-    params = json.load(open(f'{root}/config/scorer_params.json', 'r'))
-    params['shots'] = args.shots
-    params['num_trials'] = args.num_trials
-    params['cross_attn_every_n_layers'] = args.cross_attn_every_n_layers
-    params['rices'] = args.rices
-    params['lm_tokenizer_path'] = args.lm_tokenizer_path
-    params['lm_path'] = args.lm_path
-    params['is_distributed'] = args.is_distributed
-    params['num_samples'] = args.num_samples
-    json.dump(params, open(f'{root}/config/scorer_params.json', 'w'), indent=4)
 
 def rices_setup():
     indice_folder = f'{path}/indexes'
