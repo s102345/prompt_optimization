@@ -48,7 +48,6 @@ class Scorer():
         self.args.cached_demonstration_features = self.configs['cached_demonstration_features']
         self.args.eval_coco = True
         self.args.device_map = 'auto'
-        self.args.horovod = self.args.is_distributed
 
         if type(self.args.shots) == int:
             self.args.shots = [self.args.shots]
