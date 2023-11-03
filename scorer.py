@@ -12,10 +12,6 @@ from eval.evaluate import main as evaluate_main
 class Scorer():
     def __init__(self, args):
         print("Start scorer initializing!")
-        # Set environment variables
-        os.environ["PYTHONPATH"] = "../..:$PYTHONPATH"
-        os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-
         # Load configs
         self.configs = json.load(open(f'{root}/config/scorer_params.json'))
 
@@ -52,6 +48,7 @@ class Scorer():
         self.args.cached_demonstration_features = self.configs['cached_demonstration_features']
         self.args.eval_coco = True
         self.args.device_map = 'auto'
+        self.args.horovod = self.args.is_distributed
 
         if type(self.args.shots) == int:
             self.args.shots = [self.args.shots]
