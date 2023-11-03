@@ -26,7 +26,7 @@ def get_args():
     parser.add_argument('--precision', type=str, default="fp16", help='Precision of model')
     parser.add_argument('--rices', action='store_true', help='Use rices to evaluate score or not')
     parser.add_argument("--shots", nargs="+", default=2, type=int)
-    parser.add_argument("--num_samples", type=int, default=2, help="Number of samples to evaluate on. -1 for all samples.")
+    parser.add_argument("--num_samples", type=int, default=200, help="Number of samples to evaluate on. -1 for all samples.")
     parser.add_argument("--num_trials", type=int, default=1, help="Number of trials to run for each shot using different demonstrations")
     parser.add_argument("--batch_size", type=int, default=2, help="Batch size for scorer")
     # Training parameters
@@ -56,7 +56,7 @@ class Manager():
         self.optimizer = Optimizer()
 
         #Log
-        #wandb.init(project="Optimization by PROmpting")
+        wandb.init(project="Optimization by PROmpting")
         config = {
             "scorer_rices": self.args.rices,
             "scorer_shots": self.args.shots,
@@ -71,13 +71,13 @@ class Manager():
             "example_rule": self.args.example_rule,
             "extra_information": self.args.extra_information,
         }
-        #wandb.config.update(config)
+        wandb.config.update(config)
 
         print("Evaluating initial prompt...")
         initial_score = self.scorer.evaluate(args.initial_prompt)
         print(f"Initial score: {initial_score}")
         self.metaPromptGenerator = MetaPromptGenerator(self.args, self.make_prompt_score_pair([self.args.initial_prompt], [initial_score])) 
-        #wandb.log({"CIDEr": initial_score})
+        wandb.log({"CIDEr": initial_score})
 
     def make_prompt_score_pair(self, solutions, scores):
         prompt_score_pair = []
