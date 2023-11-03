@@ -13,6 +13,7 @@ from optimizer import Optimizer
 from appdata import root, path
 import wandb
 from statistics import mean
+import torch.multiprocessing as mp
 
 def get_args():
     parser = argparse.ArgumentParser(description='OpenFlamingo Prompt Optimization')
@@ -21,7 +22,8 @@ def get_args():
     parser.add_argument('--output_dir', type=str, default="./", help='Output directory')
     parser.add_argument('--seed', default=42, type=int, help='Random seed')
     parser.add_argument('--detailed_log', type=int, default=-1, help='Output detailed prompt or not')
-
+    parser.add_argument('--num_processes', type=int, default=1, help='Number of processes to use for evaluation')
+    
     # Scorer model parameters
     parser.add_argument('--precision', type=str, default="fp16", help='Precision of model')
     parser.add_argument('--rices', action='store_true', help='Use rices to evaluate score or not')
@@ -29,6 +31,7 @@ def get_args():
     parser.add_argument("--num_samples", type=int, default=200, help="Number of samples to evaluate on. -1 for all samples.")
     parser.add_argument("--num_trials", type=int, default=1, help="Number of trials to run for each shot using different demonstrations")
     parser.add_argument("--batch_size", type=int, default=2, help="Batch size for scorer")
+
     # Training parameters
     parser.add_argument('--steps', type=int, default=200, help='Number of steps')
     parser.add_argument('--instruction_per_step', type=int, default=8, help='Instructions generated per step')
@@ -54,6 +57,8 @@ class Manager():
 
         self.scorer = Scorer(args)
         self.optimizer = Optimizer()
+
+        mp.set_start_method('spawn')
 
         #Log
         wandb.init(project="Optimization by PROmpting")
@@ -100,6 +105,25 @@ class Manager():
                 solutions.append(sol)
                 score = self.scorer.evaluate(sol)
                 scores.append(score)
+
+            for j in range(0, self.args.instruction_per_step, self.args.num_processes):
+                num_processes = min(self.args.num_processes, self.args.instruction_per_step - j)
+                return_queue = mp.Queue()
+                processes = []
+
+                for rank in range(num_processes):
+                    p = mp.Process(target=self.scorer.evaluate, args=(rank, self.args, return_queue))
+                    p.start()
+                    processes.append(p)
+                
+                results = [return_queue.get() for _ in range(num_processes)]
+
+                for p in processes:
+                    p.join()
+                
+                scores.extend(results)
+
+            print(scores)
                 
             prompt_score_pair = self.make_prompt_score_pair(solutions, scores)
             self.metaPromptGenerator.update_meta_prompt(prompt_score_pair)
@@ -123,11 +147,23 @@ class Manager():
 def main():
     args = get_args()
     manager = Manager(args)
-    manager.train()
+    # Unit test
+    args.num_samples = 300
+    score = manager.scorer.evaluate(args.initial_prompt)
+    print(f"Initial score: {score}")
+    args.num_samples = 400
+    score = manager.scorer.evaluate(args.initial_prompt)
+    print(f"Initial score: {score}")
+    args.num_samples = 500
+    score = manager.scorer.evaluate(args.initial_prompt)
+    print(f"Initial score: {score}")
+    #manager.train()
     # End training
     top_pairs = manager.metaPromptGenerator.get_top_pairs()
     json.dump(top_pairs, open(f'{args.output_dir}/top_pairs.json', 'w'), indent=4)
     print("Done!")
+
+
 
 if __name__ == '__main__':
     main()
