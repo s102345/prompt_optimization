@@ -1,7 +1,6 @@
 import json
 import argparse
 
-
 import os
 os.environ["MASTER_ADDR"] = 'localhost'
 os.environ["MASTER_PORT"] = '29500'
@@ -14,6 +13,7 @@ from appdata import root, path
 import wandb
 from statistics import mean
 
+
 def get_args():
     parser = argparse.ArgumentParser(description='OpenFlamingo Prompt Optimization')
 
@@ -21,14 +21,15 @@ def get_args():
     parser.add_argument('--output_dir', type=str, default="./", help='Output directory')
     parser.add_argument('--seed', default=42, type=int, help='Random seed')
     parser.add_argument('--detailed_log', type=int, default=-1, help='Output detailed prompt or not')
-
+    
     # Scorer model parameters
     parser.add_argument('--precision', type=str, default="fp16", help='Precision of model')
     parser.add_argument('--rices', action='store_true', help='Use rices to evaluate score or not')
     parser.add_argument("--shots", nargs="+", default=2, type=int)
-    parser.add_argument("--num_samples", type=int, default=200, help="Number of samples to evaluate on. -1 for all samples.")
+    parser.add_argument("--num_samples", type=int, default=2, help="Number of samples to evaluate on. -1 for all samples.")
     parser.add_argument("--num_trials", type=int, default=1, help="Number of trials to run for each shot using different demonstrations")
     parser.add_argument("--batch_size", type=int, default=2, help="Batch size for scorer")
+
     # Training parameters
     parser.add_argument('--steps', type=int, default=200, help='Number of steps')
     parser.add_argument('--instruction_per_step', type=int, default=8, help='Instructions generated per step')
@@ -94,7 +95,7 @@ class Manager():
             solutions = []
             scores = []
             self.optimizer.init()
-
+            
             for j in range(self.args.instruction_per_step):
                 sol = self.optimizer.generate(meta_prompt)
                 solutions.append(sol)
@@ -122,12 +123,27 @@ class Manager():
 
 def main():
     args = get_args()
+        
     manager = Manager(args)
     manager.train()
+    """
+    # Unit test
+    args.num_samples = 300
+    score = manager.scorer.evaluate(args.initial_prompt)
+    print(f"Initial score: {score}")
+    args.num_samples = 400
+    score = manager.scorer.evaluate(args.initial_prompt)
+    print(f"Initial score: {score}")
+    args.num_samples = 500
+    score = manager.scorer.evaluate(args.initial_prompt)
+    print(f"Initial score: {score}")
+    """
     # End training
     top_pairs = manager.metaPromptGenerator.get_top_pairs()
     json.dump(top_pairs, open(f'{args.output_dir}/top_pairs.json', 'w'), indent=4)
     print("Done!")
+
+
 
 if __name__ == '__main__':
     main()
