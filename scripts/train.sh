@@ -1,7 +1,7 @@
 export PYTHONPATH="../..:$PYTHONPATH"
 export CUDA_VISIBLE_DEVICES=1
 
-python manager.py \
+python -m ../manager \
 --output_dir ./ \
 --shots 2 \
 --num_samples 200 \
