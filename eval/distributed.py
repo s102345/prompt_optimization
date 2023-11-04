@@ -97,7 +97,6 @@ def init_distributed_device(args):
         args.distributed = True
     else:
         # needed to run on single gpu
-        
         torch.distributed.init_process_group(
             backend=args.dist_backend,
             init_method=args.dist_url,

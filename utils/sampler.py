@@ -12,7 +12,7 @@ class Sampler():
         
     def init_used_images(self):
         img_record = {}
-        for img in os.listdir(f'{root}/data/prompt_train2014'):
+        for img in os.listdir(f'{root}/data/train2014'):
             img_record[img] = False
         json.dump(img_record, open(f'{root}/tmp/used_images.json', 'w'), indent=4)
 
@@ -47,7 +47,7 @@ class Sampler():
         json.dump(used_record, open(f'{root}/tmp/used_images.json', 'w'), indent=4)
 
     def search_image_info(self, image_name):
-        annotations = json.load(open(f'{root}/data/prompt_karpathy_coco.json', 'r'))
+        annotations = json.load(open(f'{root}/data/karpathy_coco.json', 'r'))
         instances = json.load(open(f'{root}/data/instances_train2014.json', 'r'))
 
         target_info = dict()

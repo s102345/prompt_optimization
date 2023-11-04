@@ -35,6 +35,8 @@ class EvalModel(BaseEvalModel):
         kwargs = {"torch_dtype": get_precision(model_args["precision"])}
         self.model = OtterForConditionalGeneration.from_pretrained(
             model_args["model_path"],
+            local_files_only=True,
+            low_cpu_mem_usage=True,
             **kwargs,
         ).cuda()
         # self.model.to(self.device)

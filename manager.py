@@ -13,6 +13,8 @@ from appdata import root, path
 import wandb
 from statistics import mean
 
+import torch.multiprocessing as mp
+
 def get_args():
     parser = argparse.ArgumentParser(description='OpenFlamingo Prompt Optimization')
 
@@ -20,7 +22,8 @@ def get_args():
     parser.add_argument('--output_dir', type=str, default="./", help='Output directory')
     parser.add_argument('--seed', default=42, type=int, help='Random seed')
     parser.add_argument('--detailed_log', type=int, default=-1, help='Output detailed prompt or not')
-    
+    parser.add_argument('--num_processes', type=int, default=1, help='Number of processes to use for evaluation')
+
     # Scorer model parameters
     parser.add_argument('--precision', type=str, default="fp16", help='Precision of model')
     parser.add_argument('--rices', action='store_true', help='Use rices to evaluate score or not')
@@ -31,6 +34,7 @@ def get_args():
 
     # Training parameters
     parser.add_argument('--steps', type=int, default=200, help='Number of steps')
+    parser.add_argument('--last_step', type=int, default=0, help='Last step')
     parser.add_argument('--instruction_per_step', type=int, default=8, help='Instructions generated per step')
     parser.add_argument('--initial_prompt', type=str, default="Output", help='Initial prompt')
 
@@ -72,12 +76,16 @@ class Manager():
             "extra_information": self.args.extra_information,
         }
         wandb.config.update(config)
-
-        print("Evaluating initial prompt...")
-        initial_score = self.scorer.evaluate(args.initial_prompt)
-        print(f"Initial score: {initial_score}")
-        self.metaPromptGenerator = MetaPromptGenerator(self.args, self.make_prompt_score_pair([self.args.initial_prompt], [initial_score])) 
-        wandb.log({"CIDEr": initial_score})
+        if self.args.last_step == 0:
+            print("Evaluating initial prompt...")
+            self.scorer.do_sample()
+            initial_score = self.scorer.evaluate(args.initial_prompt, 0)
+            print(f"Initial score: {initial_score}")
+            self.metaPromptGenerator = MetaPromptGenerator(self.args, self.make_prompt_score_pair([self.args.initial_prompt], [initial_score])) 
+            wandb.log({"CIDEr": initial_score})
+        else:
+            print("Loading meta prompt...")
+            self.metaPromptGenerator = MetaPromptGenerator(self.args)
 
     def make_prompt_score_pair(self, solutions, scores):
         prompt_score_pair = []
@@ -86,21 +94,44 @@ class Manager():
         return prompt_score_pair
     
     def train(self):
-        for i in range(1, self.args.steps + 1):
+        for i in range(self.args.last_step, self.args.steps):
             # LOOP
             # Receive meta-prompt
             meta_prompt = self.metaPromptGenerator.generate_meta_prompt()
             # Use meta-prompt to generate solutions
+
             solutions = []
             scores = []
             self.optimizer.init()
             
+        
             for j in range(self.args.instruction_per_step):
                 sol = self.optimizer.generate(meta_prompt)
                 solutions.append(sol)
-                score = self.scorer.evaluate(sol)
-                scores.append(score)
 
+        
+            for j in range(0, self.args.instruction_per_step, self.args.num_processes):
+                num_processes = min(self.args.num_processes, self.args.instruction_per_step - j)
+                return_queue = mp.Queue()
+                processes = []
+                os.environ["WORLD_SIZE"] = str(num_processes)
+                self.scorer.do_sample()
+
+                for rank in range(num_processes):
+                    prompt = solutions[j + rank]
+                    p = mp.Process(target=self.scorer.evaluate, args=(prompt, rank, return_queue, ))
+                    p.start()
+                    processes.append(p)
+                
+                results = [return_queue.get() for _ in range(num_processes)]
+
+                for p in processes:
+                    p.join()
+                
+                scores.extend(results)
+
+            print(scores)
+                
             prompt_score_pair = self.make_prompt_score_pair(solutions, scores)
             self.metaPromptGenerator.update_meta_prompt(prompt_score_pair)
 
@@ -122,23 +153,13 @@ class Manager():
 
 def main():
     args = get_args()
-        
     manager = Manager(args)
-    # Unit test
-    args.num_samples = 300
-    score = manager.scorer.evaluate(args.initial_prompt)
-    print(f"Initial score: {score}")
-    args.num_samples = 400
-    score = manager.scorer.evaluate(args.initial_prompt)
-    print(f"Initial score: {score}")
-    args.num_samples = 500
-    score = manager.scorer.evaluate(args.initial_prompt)
-    print(f"Initial score: {score}")
-    #manager.train()
+    manager.train()
     # End training
     top_pairs = manager.metaPromptGenerator.get_top_pairs()
     json.dump(top_pairs, open(f'{args.output_dir}/top_pairs.json', 'w'), indent=4)
     print("Done!")
+
 
 if __name__ == '__main__':
     main()

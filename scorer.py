@@ -24,7 +24,7 @@ class Scorer():
         random.seed(self.args.seed)
 
         # Setup model
-        self.setup_model()
+        #self.setup_model()
         print("Scorer initialized!")
 
     def setup_model(self):
@@ -53,9 +53,12 @@ class Scorer():
             self.args.shots = [self.args.shots]
 
     def do_sample(self):
+        print(f"Making sample of {self.args.num_samples}...")
         # We do evaluate on train2014
         # which the source of train2014 & val2014 are the same
-        annotations = json.load(open(self.configs['coco_karpathy_json_path']))
+        with open(self.configs['coco_karpathy_json_path'], 'r') as f:
+            annotations = json.load(f)
+            
         train_images = os.listdir(os.path.join(root, 'data', 'train2014'))
         
         if self.args.num_samples > len(train_images):
@@ -81,11 +84,17 @@ class Scorer():
 
         json.dump(annotations, open(self.configs['coco_karpathy_json_path'], 'w'))
 
-    def evaluate(self, prompt):
-        self.do_sample()
+        print(f"Making sample done!")
+
+    def evaluate(self, prompt, rank, queue):
+        #self.do_sample()
         self.args.prompt = prompt
-        score = evaluate_main(self.args, self.eval_model)
+        #score = evaluate_main(self.args, self.eval_model)
+        os.environ["RANK"] = str(rank)
+        os.environ["LOCAL_RANK"] = str(rank)
+        score = evaluate_main(self.args, self.configs)
         print("Score:", score)
+        queue.put(score)
         return score
     
 

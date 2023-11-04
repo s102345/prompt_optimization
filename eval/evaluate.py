@@ -175,9 +175,8 @@ parser.add_argument(
     help="Don't set device index from local rank (when CUDA_VISIBLE_DEVICES restricted to one per proc).",
 )
 
-def main(input_args, eval_model: BaseEvalModel):
+def main(input_args, config):
     old_args, leftovers = parser.parse_known_args()
-    # module = importlib.import_module(f"eval.models.{args.model}")
     args = merge_args(old_args, input_args)
     # print("======================================")
     # print(args)
@@ -186,12 +185,18 @@ def main(input_args, eval_model: BaseEvalModel):
     # print("======================================")
 
     # set up distributed evaluation
-    # model_args = {leftover.lstrip("-").split("=")[0]: leftover.split("=")[1] for leftover in leftovers}
+    #model_args = {leftover.lstrip("-").split("=")[0]: leftover.split("=")[1] for leftover in leftovers}
     args.local_rank, args.rank, args.world_size = world_info_from_env()
     device_id = init_distributed_device(args)
 
-    #eval_model = module.EvalModel(model_args)
+    module = importlib.import_module(f"eval.models.{args.model}")
+    print("Loading model...")
+
+    eval_model = module.EvalModel(config)
     eval_model.set_device(device_id)
+
+    print("Loading model finished!")
+
     if device_id != torch.device("cpu") and args.world_size > 1:
         eval_model.init_distributed()
 
