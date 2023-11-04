@@ -13,7 +13,6 @@ from appdata import root, path
 import wandb
 from statistics import mean
 
-
 def get_args():
     parser = argparse.ArgumentParser(description='OpenFlamingo Prompt Optimization')
 
@@ -101,6 +100,25 @@ class Manager():
                 solutions.append(sol)
                 score = self.scorer.evaluate(sol)
                 scores.append(score)
+
+            for j in range(0, self.args.instruction_per_step, self.args.num_processes):
+                num_processes = min(self.args.num_processes, self.args.instruction_per_step - j)
+                return_queue = mp.Queue()
+                processes = []
+
+                for rank in range(num_processes):
+                    p = mp.Process(target=self.scorer.evaluate, args=(rank, self.args, return_queue))
+                    p.start()
+                    processes.append(p)
+                
+                results = [return_queue.get() for _ in range(num_processes)]
+
+                for p in processes:
+                    p.join()
+                
+                scores.extend(results)
+
+            print(scores)
                 
             prompt_score_pair = self.make_prompt_score_pair(solutions, scores)
             self.metaPromptGenerator.update_meta_prompt(prompt_score_pair)
@@ -125,8 +143,6 @@ def main():
     args = get_args()
         
     manager = Manager(args)
-    manager.train()
-    """
     # Unit test
     args.num_samples = 300
     score = manager.scorer.evaluate(args.initial_prompt)
@@ -137,11 +153,13 @@ def main():
     args.num_samples = 500
     score = manager.scorer.evaluate(args.initial_prompt)
     print(f"Initial score: {score}")
-    """
+    #manager.train()
     # End training
     top_pairs = manager.metaPromptGenerator.get_top_pairs()
     json.dump(top_pairs, open(f'{args.output_dir}/top_pairs.json', 'w'), indent=4)
     print("Done!")
+
+
 
 
 
