@@ -3,7 +3,8 @@ import torch
 from tqdm import tqdm
 import torch
 from .eval_utils import custom_collate_fn
-
+import json
+import os
 
 class RICES:
     def __init__(
@@ -88,8 +89,25 @@ class RICES:
             if similarity.ndim == 1:
                 similarity = similarity.unsqueeze(0)
 
-            # Get the indices of the 'num_examples' most similar images
-            indices = similarity.argsort(dim=-1, descending=True)[:, :num_examples]
+            path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tmp','sampled_idx.json')
+            sampled_idx = json.load(open(path, 'r'))
 
+            tmp_indices = num_examples
+
+            while True:
+                # Get the indices of the 'num_examples' most similar images
+                indices = similarity.argsort(dim=-1, descending=True)[:, :tmp_indices].tolist()
+                indices_tmp = indices 
+
+                for idx in indices:
+                    if idx in sampled_idx:
+                        indices_tmp.remove(idx)
+                        tmp_indices += 1
+                        
+                indices = indices_tmp
+
+                if len(indices) == num_examples:
+                    break
+                
         # Return with the most similar images last
         return [[self.dataset[i] for i in reversed(row)] for row in indices]

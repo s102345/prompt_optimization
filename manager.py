@@ -79,8 +79,8 @@ class Manager():
         #wandb.config.update(config)
         if self.args.last_step == 0:
             print("Evaluating initial prompt...")
-            #self.scorer.do_sample()
-            initial_score = 10 #self.scorer.evaluate(args.initial_prompt, -1)
+            self.scorer.do_sample()
+            initial_score = self.scorer.evaluate(args.initial_prompt, -1)
             print(f"Initial score: {initial_score}")
             self.metaPromptGenerator = MetaPromptGenerator(self.args, self.make_prompt_score_pair([self.args.initial_prompt], [initial_score])) 
             #wandb.log({"CIDEr": initial_score})
@@ -101,16 +101,15 @@ class Manager():
             meta_prompt = self.metaPromptGenerator.generate_meta_prompt()
             # Use meta-prompt to generate solutions
 
-            solutions = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+            solutions = []
             scores = []
             self.optimizer.init()
             
-            """
             for j in range(self.args.instruction_per_step):
                 sol = self.optimizer.generate(meta_prompt)
                 solutions.append(sol)
-            """ 
-            #self.scorer.do_sample()
+
+            self.scorer.do_sample()
         
             for j in range(0, self.args.instruction_per_step, self.args.num_processes):
                 num_processes = min(self.args.num_processes, self.args.instruction_per_step - j)

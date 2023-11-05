@@ -20,7 +20,6 @@ class Scorer():
         self.args = args
         self.update_args()
         self.update_config()
-
         # Set random seed
         random.seed(self.args.seed)
 
@@ -72,6 +71,8 @@ class Scorer():
         sampled_images = random.sample(train_images, self.args.num_samples)
         unsampled_images = list(set(train_images) - set(sampled_images))
 
+        sampled_idx = []
+
         for idx, ann in enumerate(annotations['images']):
             # unsampled_images -> train
             if ann['filename'] in unsampled_images:
@@ -79,10 +80,15 @@ class Scorer():
             # sampled_images -> test
             elif ann['filename'] in sampled_images:
                 annotations['images'][idx]['split'] = 'test'
+                sampled_idx.append(idx)
             # test -> val(something unused)
             else:
                 annotations['images'][idx]['split'] = 'val'
 
+        if not os.path.exists(os.path.join(root, 'eval', 'tmp')):
+            os.mkdir(os.path.join(root, 'eval', 'tmp'))
+
+        json.dump(sampled_idx, open(os.path.join(root, 'eval', 'tmp', 'sampled_idx.json'), 'w'))
         json.dump(annotations, open(self.configs['coco_karpathy_json_path'], 'w'))
 
         print(f"Making sample done!")
