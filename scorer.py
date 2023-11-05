@@ -8,6 +8,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'eval')
 
 from appdata import root
 from eval.evaluate import main as evaluate_main
+from eval.models.otter import EvalModel
 
 class Scorer():
     def __init__(self, args):
@@ -28,8 +29,8 @@ class Scorer():
         print("Scorer initialized!")
 
     def setup_model(self):
-        module = importlib.import_module(f"eval.models.{self.args.model}")
-        self.eval_model = module.EvalModel(self.configs)
+        #module = importlib.import_module(f"eval.models.{self.args.model}")
+        self.eval_model = EvalModel(self.configs)
 
     def update_config(self):
         self.configs['model'] = self.args.model
@@ -86,15 +87,15 @@ class Scorer():
 
         print(f"Making sample done!")
 
-    def evaluate(self, prompt, rank, queue):
-        #self.do_sample()
+    def evaluate(self, prompt, rank, queue=None):
         self.args.prompt = prompt
-        #score = evaluate_main(self.args, self.eval_model)
-        os.environ["RANK"] = str(rank)
-        os.environ["LOCAL_RANK"] = str(rank)
+        self.args.rank = rank if rank != -1 else 0
+        self.configs['device'] = f"cuda:{self.args.rank}"
         score = evaluate_main(self.args, self.configs)
+        if rank != -1 and queue != None:
+            queue.put({"rank": rank, "score": score})
+
         print("Score:", score)
-        queue.put(score)
         return score
     
 

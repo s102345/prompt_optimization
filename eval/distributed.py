@@ -90,8 +90,8 @@ def init_distributed_device(args):
             )
         else:
             # DDP via torchrun, torch.distributed.launch
-            args.local_rank, _, _ = world_info_from_env()
-            torch.distributed.init_process_group(backend=args.dist_backend, init_method=args.dist_url)
+            args.local_rank, args.rank , args.world_size = world_info_from_env()
+            torch.distributed.init_process_group(backend=args.dist_backend, init_method=args.dist_url, rank=args.rank, world_size=args.world_size)
             args.world_size = torch.distributed.get_world_size()
             args.rank = torch.distributed.get_rank()
         args.distributed = True
@@ -101,7 +101,7 @@ def init_distributed_device(args):
             backend=args.dist_backend,
             init_method=args.dist_url,
             world_size=1,
-            rank=0,
+            rank=int(os.environ["LOCAL_RANK"]),
         )
         
 

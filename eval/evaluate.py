@@ -16,7 +16,7 @@ from .eval_datasets import CaptionDataset
 from tqdm import tqdm
 
 from .eval_model import BaseEvalModel
-from .distributed import init_distributed_device, world_info_from_env
+#from .distributed import init_distributed_device, world_info_from_env
 
 from .eval_utils import compute_effective_num_shots, get_query_set, prepare_eval_samples, sample_batch_demos_from_query_set, merge_args
 from .rices import RICES
@@ -148,57 +148,17 @@ parser.add_argument(
     help="Path to the dataset_flickr30k_coco_style.json file.",
 )
 
-# Distributed evaluation
-parser.add_argument(
-    "--world_size",
-    default=1,
-    type=int,
-    help="number of distributed processes",
-)
-parser.add_argument(
-    "--dist-url",
-    default="env://",
-    type=str,
-    help="url used to set up distributed training",
-)
-parser.add_argument("--dist-backend", default="nccl", type=str, help="distributed backend")
-parser.add_argument(
-    "--horovod",
-    default=False,
-    action="store_true",
-    help="Use horovod for distributed training.",
-)
-parser.add_argument(
-    "--no-set-device-rank",
-    default=False,
-    action="store_true",
-    help="Don't set device index from local rank (when CUDA_VISIBLE_DEVICES restricted to one per proc).",
-)
-
 def main(input_args, config):
     old_args, leftovers = parser.parse_known_args()
     args = merge_args(old_args, input_args)
-    # print("======================================")
-    # print(args)
-    # print("======================================")
-    # print(leftovers)
-    # print("======================================")
-
-    # set up distributed evaluation
-    #model_args = {leftover.lstrip("-").split("=")[0]: leftover.split("=")[1] for leftover in leftovers}
-    args.local_rank, args.rank, args.world_size = world_info_from_env()
-    device_id = init_distributed_device(args)
 
     module = importlib.import_module(f"eval.models.{args.model}")
     print("Loading model...")
 
     eval_model = module.EvalModel(config)
-    eval_model.set_device(device_id)
+    eval_model.set_device(f"cuda:{args.rank}")
 
     print("Loading model finished!")
-
-    if device_id != torch.device("cpu") and args.world_size > 1:
-        eval_model.init_distributed()
 
     if args.model != "open_flamingo" and args.model != "otter" and args.shots != [0]:
         raise ValueError("Only 0 shot eval is supported for non-open_flamingo models")
@@ -234,17 +194,11 @@ def main(input_args, config):
                     num_beams=3,
                     prompt=args.prompt,
                 )
-                if args.rank == 0:
-                    print(f"Shots {shot} Trial {trial} CIDEr score: {cider_score}")
-                    scores.append(cider_score)
+                print(f"Shots {shot} Trial {trial} CIDEr score: {cider_score}")
+                scores.append(cider_score)
 
-            if args.rank == 0:
-                print(f"Shots {shot} Mean CIDEr score: {np.nanmean(scores)}")
-                results["flickr30"].append({"shots": shot, "trials": scores, "mean": np.nanmean(scores)})
-
-        if args.rank == 0 and args.results_file is not None:
-            with open(args.results_file, "w") as f:
-                json.dump(results, f)
+            print(f"Shots {shot} Mean CIDEr score: {np.nanmean(scores)}")
+            results["flickr30"].append({"shots": shot, "trials": scores, "mean": np.nanmean(scores)})
 
     if args.eval_coco:
         print("Evaluating on COCO...")
@@ -272,26 +226,20 @@ def main(input_args, config):
                     num_beams=3,
                     prompt=args.prompt,
                 )
-                if args.rank == 0:
-                    print(f"Shots {shot} Trial {trial} CIDEr score: {cider_score}")
-                    scores.append(cider_score)
+                print(f"Shots {shot} Trial {trial} CIDEr score: {cider_score}")
+                scores.append(cider_score)
 
-            if args.rank == 0:
-                print(f"Shots {shot} Mean CIDEr score: {np.nanmean(scores)}")
-                results["coco"].append({"shots": shot, "trials": scores, "mean": np.nanmean(scores)})
-        if args.rank == 0 and args.results_file is not None:
-            with open(args.results_file, "w") as f:
-                json.dump(results, f)
+            print(f"Shots {shot} Mean CIDEr score: {np.nanmean(scores)}")
+            results["coco"].append({"shots": shot, "trials": scores, "mean": np.nanmean(scores)})
 
-    if args.rank == 0 and args.results_file is not None:
+    if args.results_file is not None:
         with open(args.results_file, "w") as f:
             json.dump(results, f)
-    
-    if args.rank == 0:
-        if args.eval_coco:
-            return results['coco'][0]['mean']
-        if args.eval_flickr30:
-            return results[0]['flickr30']['mean']
+
+    if args.eval_coco:
+        return results['coco'][0]['mean']
+    if args.eval_flickr30:
+        return results[0]['flickr30']['mean']
 
 def evaluate_captioning(
     args: argparse.Namespace,
@@ -374,11 +322,11 @@ def evaluate_captioning(
 
     predictions = defaultdict()
 
-    np.random.seed(seed + args.rank)  # make sure each worker has a different seed for the random context samples
+    np.random.seed(seed)
     for batch in tqdm(
         test_dataloader,
         desc=f"Running inference {dataset_name.upper()}",
-        disable=args.rank != 0,
+        #disable=args.rank != 0,
     ):
         if args.rices:
             batch_demo_samples = rices_dataset.find(batch["image"], effective_num_shots)
@@ -418,14 +366,8 @@ def evaluate_captioning(
                 "caption": new_predictions[i],
             }
 
-    # all gather
-    all_predictions = [None] * args.world_size
-    torch.distributed.all_gather_object(all_predictions, predictions)  # list of dicts
+    all_predictions = predictions
 
-    if args.rank != 0:
-        return
-
-    all_predictions = {k: v for d in all_predictions for k, v in d.items()}  # merge dicts
     print(f"In total {len(all_predictions)} predictions.")
 
     # save the predictions to a temporary file

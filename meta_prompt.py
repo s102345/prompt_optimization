@@ -25,7 +25,7 @@ class MetaPromptGenerator():
                 "meta-instruction": [
                     "I have provided several prompts, each paired with a score. These prompts are arranged in ascending order based on their scores. A higher score indicates better quality.",
                     "Below are some problems.",
-                    "Please write a new prompt that is distinct from the ones provided. Aim for a score that's as high as possible.  The prompt should be concise, effective, and generally applicable to all problems above. Do not generate image captions. When submitting your text, encase it in square brackets. Do not mentions <INS> token. Prompt should be ended with preposition or colon."
+                    "Please write a new prompt that is distinct from the ones provided. Aim for a score that's as high as possible. The prompt should be concise, effective, and generally applicable to all problems above. Do not generate image captions. When submitting your text, encase it in square brackets. Do not mention any token above."
                 ],
                 "solution-score pair": [],
                 "optimization task": []
@@ -160,7 +160,7 @@ class MetaPromptGenerator():
 
         meta_prompt += '\n'
         meta_prompt += meta_prompt_info["meta-instruction"][2]
-        print(meta_prompt)
+        #print(meta_prompt)
         return meta_prompt
 
     def get_top_pairs(self):

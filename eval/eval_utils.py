@@ -32,11 +32,11 @@ def prepare_eval_samples(test_dataset, num_samples, batch_size, seed):
     np.random.seed(seed)
     random_indices = np.random.choice(len(test_dataset), num_samples, replace=False)
     dataset = torch.utils.data.Subset(test_dataset, random_indices)
-    sampler = torch.utils.data.distributed.DistributedSampler(dataset)
+    #sampler = torch.utils.data.distributed.DistributedSampler(dataset)
     loader = torch.utils.data.DataLoader(
         dataset,
         batch_size=batch_size,
-        sampler=sampler,
+        #sampler=sampler,
         collate_fn=custom_collate_fn,
     )
     return loader

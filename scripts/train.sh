@@ -1,12 +1,12 @@
 export PYTHONPATH="../..:$PYTHONPATH"
-export CUDA_VISIBLE_DEVICES=1
+export CUDA_VISIBLE_DEVICES="0,1"
 
-python -m ../manager \
+python ../manager.py \
 --output_dir ./ \
 --shots 2 \
+--num_processes 2 \
 --num_samples 200 \
 --steps 5 \
 --example_rule "rand" \
 --initial_prompt "Output: " \
 --extra_information \
-

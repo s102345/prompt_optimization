@@ -13,7 +13,8 @@ from appdata import root, path
 import wandb
 from statistics import mean
 
-import torch.multiprocessing as mp
+import dill
+import multiprocessing as mp
 
 def get_args():
     parser = argparse.ArgumentParser(description='OpenFlamingo Prompt Optimization')
@@ -42,7 +43,7 @@ def get_args():
     parser.add_argument('--optimization_task_number', type=int, default=3, help='Amount of optimization tasks in meta prompt')
     parser.add_argument('--example_number', type=int, default=3, help='Example amount in each optimization task')
     parser.add_argument('--maximum_prompt_score_pair', type=int, default=20, help='Maximum number of prompt-score pair in meta prompt')
-    parser.add_argument('--example_rule', type=str, default="rices", help='The way of choosing other examples in each optimization task')
+    parser.add_argument('--example_rule', type=str, default="rand", help='The way of choosing other examples in each optimization task')
     parser.add_argument('--extra_information', default=True, action="store_true", help='Extra information of image in meta prompt')
 
     return parser.parse_args()
@@ -60,7 +61,7 @@ class Manager():
         self.optimizer = Optimizer()
 
         #Log
-        wandb.init(project="Optimization by PROmpting")
+        #wandb.init(project="Optimization by PROmpting")
         config = {
             "scorer_rices": self.args.rices,
             "scorer_shots": self.args.shots,
@@ -75,14 +76,14 @@ class Manager():
             "example_rule": self.args.example_rule,
             "extra_information": self.args.extra_information,
         }
-        wandb.config.update(config)
+        #wandb.config.update(config)
         if self.args.last_step == 0:
             print("Evaluating initial prompt...")
-            self.scorer.do_sample()
-            initial_score = self.scorer.evaluate(args.initial_prompt, 0)
+            #self.scorer.do_sample()
+            initial_score = 10 #self.scorer.evaluate(args.initial_prompt, -1)
             print(f"Initial score: {initial_score}")
             self.metaPromptGenerator = MetaPromptGenerator(self.args, self.make_prompt_score_pair([self.args.initial_prompt], [initial_score])) 
-            wandb.log({"CIDEr": initial_score})
+            #wandb.log({"CIDEr": initial_score})
         else:
             print("Loading meta prompt...")
             self.metaPromptGenerator = MetaPromptGenerator(self.args)
@@ -100,22 +101,21 @@ class Manager():
             meta_prompt = self.metaPromptGenerator.generate_meta_prompt()
             # Use meta-prompt to generate solutions
 
-            solutions = []
+            solutions = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
             scores = []
             self.optimizer.init()
             
-        
+            """
             for j in range(self.args.instruction_per_step):
                 sol = self.optimizer.generate(meta_prompt)
                 solutions.append(sol)
-
+            """ 
+            #self.scorer.do_sample()
         
             for j in range(0, self.args.instruction_per_step, self.args.num_processes):
                 num_processes = min(self.args.num_processes, self.args.instruction_per_step - j)
                 return_queue = mp.Queue()
                 processes = []
-                os.environ["WORLD_SIZE"] = str(num_processes)
-                self.scorer.do_sample()
 
                 for rank in range(num_processes):
                     prompt = solutions[j + rank]
@@ -128,6 +128,9 @@ class Manager():
                 for p in processes:
                     p.join()
                 
+                results.sort(key=lambda x: x['rank'])
+                results = [result['score'] for result in results]
+
                 scores.extend(results)
 
             print(scores)
@@ -153,6 +156,7 @@ class Manager():
 
 def main():
     args = get_args()
+    mp.set_start_method('spawn')
     manager = Manager(args)
     manager.train()
     # End training
