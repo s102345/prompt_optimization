@@ -9,5 +9,5 @@ python ../manager.py \
 --rices \
 --steps 10 \
 --example_rule "rand" \
---initial_prompt "Output: " \
+--initial_prompt "Output:" \
 --extra_information \
