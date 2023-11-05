@@ -789,10 +789,10 @@ class OtterForConditionalGeneration(OtterPreTrainedModel):
         self.max_num_frames = config.max_num_frames if hasattr(config, "max_num_frames") else None
 
         # Informative print statement
-        if self.max_num_frames is None or self.max_num_frames == 1:
-            print(f"The current model version is configured for Otter-Image with max_num_frames set to {self.max_num_frames}.")
-        else:
-            print(f"The current model version is configured for Otter-Video with a maximum of {self.max_num_frames} frames.")
+        #if self.max_num_frames is None or self.max_num_frames == 1:
+            #print(f"The current model version is configured for Otter-Image with max_num_frames set to {self.max_num_frames}.")
+        #else:
+            #print(f"The current model version is configured for Otter-Video with a maximum of {self.max_num_frames} frames.")
 
         vision_encoder.output_tokens = True
         self.vision_encoder = vision_encoder
@@ -891,7 +891,7 @@ class OtterForConditionalGeneration(OtterPreTrainedModel):
             if param.requires_grad:
                 total_params += param.numel()
                 # print(f"Parameter: {name}, Size: {param.numel() / 1e6:.6f} M")
-        print(f"Total Trainable param: {total_params / 1e9:.6f} B")
+        # print(f"Total Trainable param: {total_params / 1e9:.6f} B")
         # print(f"Total Trainable param: {(sum(p.numel() for p in self.parameters() if p.requires_grad)) / 1e9:.6f} B")
 
     def forward(

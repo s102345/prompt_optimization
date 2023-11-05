@@ -38,8 +38,7 @@ class EvalModel(BaseEvalModel):
             local_files_only=True,
             low_cpu_mem_usage=True,
             **kwargs,
-        ).cuda()
-        # self.model.to(self.device)
+        ).to(self.device)
         self.image_processor = transformers.CLIPImageProcessor()
         self.tokenizer = self.model.text_tokenizer
 
@@ -49,7 +48,7 @@ class EvalModel(BaseEvalModel):
                 checkpoint = checkpoint["model_state_dict"]
                 checkpoint = {k.replace("module.", ""): v for k, v in checkpoint.items()}
             msg = self.model.load_state_dict(checkpoint, strict=False)
-            print(msg)
+            #print(msg)
         # self.model.to(self.device)
         self.model.eval()
         self.tokenizer.padding_side = "left"
