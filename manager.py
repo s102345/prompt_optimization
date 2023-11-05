@@ -27,7 +27,7 @@ def get_args():
 
     # Scorer model parameters
     parser.add_argument('--precision', type=str, default="fp16", help='Precision of model')
-    parser.add_argument('--rices', action='store_true', default=True, help='Use rices to evaluate score or not')
+    parser.add_argument('--rices', action='store_true', help='Use rices to evaluate score or not')
     parser.add_argument("--shots", nargs="+", default=2, type=int)
     parser.add_argument("--num_samples", type=int, default=2, help="Number of samples to evaluate on. -1 for all samples.")
     parser.add_argument("--num_trials", type=int, default=1, help="Number of trials to run for each shot using different demonstrations")
