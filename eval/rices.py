@@ -92,12 +92,14 @@ class RICES:
             path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tmp','sampled_idx.json')
             sampled_idx = json.load(open(path, 'r'))
 
+            tmp_indices = num_examples
+
             while True:
                 # Get the indices of the 'num_examples' most similar images
                 indices = similarity.argsort(dim=-1, descending=True)[:, :tmp_indices].tolist()
                 indices_tmp = indices 
                 tmp_indices = len(indices)
-
+                
                 for idx in indices:
                     if idx in sampled_idx:
                         indices_tmp.remove(idx)
