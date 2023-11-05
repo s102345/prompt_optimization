@@ -73,6 +73,7 @@ class Scorer():
 
         sampled_idx = []
         count = 0
+
         for idx, ann in enumerate(annotations['images']):
             # unsampled_images -> train
             if ann['filename'] in unsampled_images:

@@ -23,13 +23,13 @@ def get_args():
     parser.add_argument('--output_dir', type=str, default="./", help='Output directory')
     parser.add_argument('--seed', default=42, type=int, help='Random seed')
     parser.add_argument('--detailed_log', type=int, default=-1, help='Output detailed prompt or not')
-    parser.add_argument('--num_processes', type=int, default=1, help='Number of processes to use for evaluation')
+    parser.add_argument('--num_processes', type=int, default=2, help='Number of processes to use for evaluation')
 
     # Scorer model parameters
     parser.add_argument('--precision', type=str, default="fp16", help='Precision of model')
-    parser.add_argument('--rices', action='store_true', help='Use rices to evaluate score or not')
+    parser.add_argument('--rices', action='store_true', default=True, help='Use rices to evaluate score or not')
     parser.add_argument("--shots", nargs="+", default=2, type=int)
-    parser.add_argument("--num_samples", type=int, default=2, help="Number of samples to evaluate on. -1 for all samples.")
+    parser.add_argument("--num_samples", type=int, default=200, help="Number of samples to evaluate on. -1 for all samples.")
     parser.add_argument("--num_trials", type=int, default=1, help="Number of trials to run for each shot using different demonstrations")
     parser.add_argument("--batch_size", type=int, default=2, help="Batch size for scorer")
 
@@ -61,7 +61,7 @@ class Manager():
         self.optimizer = Optimizer()
 
         #Log
-        #wandb.init(project="Optimization by PROmpting")
+        wandb.init(project="Optimization by PROmpting")
         config = {
             "scorer_rices": self.args.rices,
             "scorer_shots": self.args.shots,
@@ -76,14 +76,14 @@ class Manager():
             "example_rule": self.args.example_rule,
             "extra_information": self.args.extra_information,
         }
-        #wandb.config.update(config)
+        wandb.config.update(config)
         if self.args.last_step == 0:
             print("Evaluating initial prompt...")
-            #self.scorer.do_sample()
+            self.scorer.do_sample()
             initial_score = self.scorer.evaluate(args.initial_prompt, -1)
             print(f"Initial score: {initial_score}")
             self.metaPromptGenerator = MetaPromptGenerator(self.args, self.make_prompt_score_pair([self.args.initial_prompt], [initial_score])) 
-            #wandb.log({"CIDEr": initial_score})
+            wandb.log({"CIDEr": initial_score})
         else:
             print("Loading meta prompt...")
             self.metaPromptGenerator = MetaPromptGenerator(self.args)
@@ -100,7 +100,6 @@ class Manager():
             # Receive meta-prompt
             meta_prompt = self.metaPromptGenerator.generate_meta_prompt()
             # Use meta-prompt to generate solutions
-
             solutions = []
             scores = []
             self.optimizer.init()
@@ -132,8 +131,6 @@ class Manager():
 
                 scores.extend(results)
 
-            print(scores)
-                
             prompt_score_pair = self.make_prompt_score_pair(solutions, scores)
             self.metaPromptGenerator.update_meta_prompt(prompt_score_pair)
 
@@ -157,7 +154,7 @@ def main():
     args = get_args()
     mp.set_start_method('spawn')
     manager = Manager(args)
-    # manager.train()
+    manager.train()
     # End training
     top_pairs = manager.metaPromptGenerator.get_top_pairs()
     json.dump(top_pairs, open(f'{args.output_dir}/top_pairs.json', 'w'), indent=4)
