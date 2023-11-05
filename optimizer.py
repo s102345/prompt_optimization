@@ -37,10 +37,6 @@ class Optimizer():
         else:
             new_solution = tmp[0][1: -1]
 
-        # Dumb prevention
-        if new_solution[-1] == '.':
-            new_solution[-1] = ':'
-
         past_solution.append({'solution': new_solution})
         json.dump(past_solution, open(f'{root}/tmp/solutions.json', 'w'), indent=4)
 
