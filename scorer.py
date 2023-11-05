@@ -2,7 +2,7 @@ import json
 import os
 import random
 import importlib
-
+import torch
 import sys
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'eval'))
 
@@ -103,7 +103,7 @@ class Scorer():
         score = evaluate_main(self.args, self.configs)
         if rank != -1 and queue != None:
             queue.put({"rank": rank, "score": score})
-
+        torch.cuda.empty_cache()
         print("Score:", score)
         return score
     
