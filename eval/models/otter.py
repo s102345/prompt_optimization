@@ -37,6 +37,7 @@ class EvalModel(BaseEvalModel):
             model_args["model_path"],
             local_files_only=True,
             low_cpu_mem_usage=True,
+            device_map='auto',
             **kwargs,
         ).to(self.device)
         self.image_processor = transformers.CLIPImageProcessor()
