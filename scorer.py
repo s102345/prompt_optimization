@@ -72,15 +72,17 @@ class Scorer():
         unsampled_images = list(set(train_images) - set(sampled_images))
 
         sampled_idx = []
-
+        count = 0
         for idx, ann in enumerate(annotations['images']):
             # unsampled_images -> train
             if ann['filename'] in unsampled_images:
                 annotations['images'][idx]['split'] = 'train'
+                count += 1
             # sampled_images -> test
             elif ann['filename'] in sampled_images:
                 annotations['images'][idx]['split'] = 'test'
-                sampled_idx.append(idx)
+                sampled_idx.append(count)
+                count += 1
             # test -> val(something unused)
             else:
                 annotations['images'][idx]['split'] = 'val'

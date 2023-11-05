@@ -34,6 +34,16 @@ class RICES:
         else:
             self.features = cached_features
 
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tmp','sampled_idx.json')
+        sampled_idx = json.load(open(path, 'r'))
+        tmp = []
+        for i, feat in enumerate(self.features):
+            if i in sampled_idx:
+                continue
+            tmp.append(feat)
+        tmp = torch.stack(tmp)    
+        self.features = tmp
+
     def _precompute_features(self):
         features = []
 
