@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 import openai
+from tenacity import wait_random_exponential, stop_after_attempt, retry
 import os, json, re
 from appdata import root
 
@@ -13,22 +14,34 @@ class Optimizer():
         if not os.path.exists(f'{root}/tmp'):
             os.mkdir(f'{root}/tmp')
         json.dump([], open(f'{root}/tmp/solutions.json', 'w'))
+        self.messages = []
         print("Optimizer initialized!")
 
-    def generate(self, meta_prompt):
-        messages = [
+    @retry(wait=wait_random_exponential(multiplier=1, max=60), stop=stop_after_attempt(10))
+    def call_API(self):
+        completion  = openai.ChatCompletion.create(
+            model='gpt-4',
+            messages=self.messages
+        )
+        return completion
+
+    def prepare_messages(self, meta_prompt):
+        self.messages = [
             {"role": "system", "content": meta_prompt},
         ]
 
         past_solution = json.load(open(f'{root}/tmp/solutions.json', 'r'))
 
         for solution in past_solution:
-            messages.append({"role": "assistant", "content": solution['solution']})
-            
-        completion  = openai.ChatCompletion.create(
-            model='gpt-4',
-            messages=messages
-        )
+            self.messages.append({"role": "assistant", "content": solution['solution']})
+
+    def generate(self, meta_prompt):
+        if self.messages == []:
+            self.prepare_messages(meta_prompt)
+
+        past_solution = json.load(open(f'{root}/tmp/solutions.json', 'r'))
+
+        completion = self.call_API()        
 
         tmp = re.findall(r'\[.*?\]', completion.choices[0].message['content'])
         # Not in [] format
