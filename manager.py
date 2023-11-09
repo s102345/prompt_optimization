@@ -160,13 +160,5 @@ def main():
     json.dump(top_pairs, open(f'{args.output_dir}/top_pairs.json', 'w'), indent=4)
     print("Done!")
 
-def unit_test():
-    args = get_args()
-    mpg = MetaPromptGenerator(args, [{"Prompt": "Output", "Score": 70}])
-    mp = mpg.generate_meta_prompt()
-    op = Optimizer()
-    print(op.generate(mp))
-
 if __name__ == '__main__':
-    #main()
-    unit_test()
+    main()

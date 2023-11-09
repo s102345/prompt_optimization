@@ -1,8 +1,10 @@
 {
     "captions_train2014": "https://huggingface.co/datasets/openflamingo/eval_benchmark/raw/main/mscoco_karpathy/annotations/captions_train2014.json",
+    "captions_val2014": "https://drive.google.com/uc?id=1flc2AAYyXkJ7k3I1uv7w_LfqUpMNbydx&export=download",
     "instances_train2014": "https://drive.google.com/uc?id=1qgM2MUu2qhaacy64Ifm15WVLs1NG_5LE&export=download",
     "karpathy_coco": "https://huggingface.co/datasets/openflamingo/eval_benchmark/raw/main/mscoco_karpathy/karpathy_coco.json",
     "MSCOCO2014": "http://images.cocodataset.org/zips/train2014.zip",
+    "MSCOCO2014_val": "http://images.cocodataset.org/zips/val2014.zip",
     "rices_indexes": "https://drive.google.com/u/0/uc?id=1udk0Q8phZaLXpRAqaLZU7kUfsmeLD_dk&export=download",
     "rices_features": "https://drive.google.com/uc?id=1-5dr5JtSodLJzXADp7TETS_1kTooyOZE&export=download"   
 }
