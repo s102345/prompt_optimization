@@ -1,6 +1,6 @@
 export PYTHONPATH="../..:$PYTHONPATH"
 
-python -m evaluate_origin \
+python ../eval/evaluate_origin.py \
 --coco_train_image_dir_path="data\train2014" \
 --coco_val_image_dir_path="data\val2014" \
 --coco_karpathy_json_path="data\karpathy_coco.json" \
