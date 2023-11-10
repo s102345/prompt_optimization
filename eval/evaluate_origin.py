@@ -11,14 +11,14 @@ import numpy as np
 import torch
 from sklearn.metrics import roc_auc_score
 
-from coco_metric import compute_cider, postprocess_captioning_generation
-from eval_datasets import CaptionDataset
+from .coco_metric import compute_cider, postprocess_captioning_generation
+from .eval_datasets import CaptionDataset
 from tqdm import tqdm
 
-from eval_model import BaseEvalModel
+from .eval_model import BaseEvalModel
 
-from eval_utils import compute_effective_num_shots, get_query_set, prepare_eval_samples, sample_batch_demos_from_query_set, merge_args
-from rices import RICES
+from .eval_utils import compute_effective_num_shots, get_query_set, prepare_eval_samples, sample_batch_demos_from_query_set, merge_args
+from .rices import RICES
 
 parser = argparse.ArgumentParser()
 
