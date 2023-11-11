@@ -97,6 +97,7 @@ class Scorer():
         print(f"Making sample done!")
 
     def evaluate(self, prompt, rank, queue=None):
+        print("Evaluating score...")
         self.args.prompt = prompt
         self.args.rank = rank if rank != -1 else 0
         self.configs['device'] = f"cuda:{self.args.rank}"

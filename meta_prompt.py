@@ -21,7 +21,7 @@ class MetaPromptGenerator():
             json.dump([], open(f'{root}/tmp/old_pair.json', 'w'), indent=4) # Tmp of old pairs
             json.dump([], open(f'{root}/tmp/all_prompt.json', 'w'), indent=4) # Tmp of all prompts
             default_meta_prompt = {
-                "step" : 0,
+                "step" : -1,
                 "meta-instruction": [
                     "I have provided several prompts, each paired with a score. These prompts are arranged in ascending order based on their scores. A higher score indicates better quality.",
                     "Below are some problems.",
@@ -118,6 +118,7 @@ class MetaPromptGenerator():
         json.dump(meta_prompt_info, open(f'{root}/tmp/meta_prompt.json', 'w'), indent=4)
 
     def generate_meta_prompt(self):
+        print("Generating meta-prompt...")
         meta_prompt_info = json.load(open(f'{root}/tmp/meta_prompt.json', 'r'))
         meta_prompt = ""
 
@@ -161,6 +162,7 @@ class MetaPromptGenerator():
         meta_prompt += '\n'
         meta_prompt += meta_prompt_info["meta-instruction"][2]
         #print(meta_prompt)
+        print("Generating meta-prompt done!")
         return meta_prompt
 
     def get_top_pairs(self):

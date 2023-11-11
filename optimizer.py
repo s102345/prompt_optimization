@@ -36,6 +36,7 @@ class Optimizer():
             self.messages.append({"role": "assistant", "content": solution['solution']})
 
     def generate(self, meta_prompt):
+        print("Generating solution...")
         if self.messages == []:
             self.prepare_messages(meta_prompt)
 
@@ -53,4 +54,5 @@ class Optimizer():
         past_solution.append({'solution': new_solution})
         json.dump(past_solution, open(f'{root}/tmp/solutions.json', 'w'), indent=4)
 
+        print("Generating solution done!")
         return new_solution

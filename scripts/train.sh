@@ -3,6 +3,8 @@ export CUDA_VISIBLE_DEVICES="0,1,2,3,4,5,6,7"
 
 python ../manager.py \
 --output_dir ./ \
+--detailed_log \
+--checkpoint_per_step \
 --shots 2 \
 --num_processes 8 \
 --num_samples 400 \
