@@ -135,7 +135,6 @@ class Manager():
 
                 scores.extend(results)
        
-            scores = [a * i + self.args.instruction_per_step for a in range(self.args.instruction_per_step)]
             prompt_score_pair = self.make_prompt_score_pair(solutions, scores)
             self.metaPromptGenerator.update_meta_prompt(prompt_score_pair)
 
