@@ -23,13 +23,13 @@ def get_args():
     # General parameters
     parser.add_argument('--output_dir', type=str, default="./", help='Output directory')
     parser.add_argument('--seed', default=42, type=int, help='Random seed')
-    parser.add_argument('--detailed_log', action='store_true', default=True, help='Output detailed prompt or not')
-    parser.add_argument('--checkpoint_per_step', action='store_true', default=True, help='Frequency of saving checkpoints')
+    parser.add_argument('--detailed_log', action='store_true', help='Output detailed prompt or not')
+    parser.add_argument('--checkpoint_per_step', action='store_true', help='Frequency of saving checkpoints')
     parser.add_argument('--num_processes', type=int, default=1, help='Number of processes to use for evaluation')
 
     # Scorer model parameters
     parser.add_argument('--precision', type=str, default="fp16", help='Precision of model')
-    parser.add_argument('--rices', action='store_true', default=True, help='Use rices to evaluate score or not')
+    parser.add_argument('--rices', action='store_true', help='Use rices to evaluate score or not')
     parser.add_argument("--shots", nargs="+", default=2, type=int)
     parser.add_argument("--num_samples", type=int, default=200, help="Number of samples to evaluate on. -1 for all samples.")
     parser.add_argument("--num_trials", type=int, default=1, help="Number of trials to run for each shot using different demonstrations")
@@ -46,7 +46,7 @@ def get_args():
     parser.add_argument('--example_number', type=int, default=3, help='Example amount in each optimization task')
     parser.add_argument('--maximum_prompt_score_pair', type=int, default=20, help='Maximum number of prompt-score pair in meta prompt')
     parser.add_argument('--example_rule', type=str, default="rand", help='The way of choosing other examples in each optimization task')
-    parser.add_argument('--extra_information', default=True, action="store_true", help='Extra information of image in meta prompt')
+    parser.add_argument('--extra_information', action="store_true", help='Extra information of image in meta prompt')
 
     return parser.parse_args()
 
