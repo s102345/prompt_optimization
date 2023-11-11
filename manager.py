@@ -63,7 +63,7 @@ class Manager():
         self.optimizer = Optimizer()
 
         #Log
-        #wandb.init(project="Optimization by PROmpting")
+        wandb.init(project="Optimization by PROmpting")
         config = {
             "scorer_rices": self.args.rices,
             "scorer_shots": self.args.shots,
@@ -78,14 +78,14 @@ class Manager():
             "example_rule": self.args.example_rule,
             "extra_information": self.args.extra_information,
         }
-        #wandb.config.update(config)
+        wandb.config.update(config)
         if self.args.last_step == 0:
             print("Evaluating initial prompt...")
-            #self.scorer.do_sample()
-            initial_score = 10 #self.scorer.evaluate(args.initial_prompt, -1)
+            self.scorer.do_sample()
+            initial_score = self.scorer.evaluate(args.initial_prompt, -1)
             print(f"Initial score: {initial_score}")
             self.metaPromptGenerator = MetaPromptGenerator(self.args, self.make_prompt_score_pair([self.args.initial_prompt], [initial_score])) 
-            #wandb.log({"CIDEr": initial_score})
+            wandb.log({"CIDEr": initial_score})
         else:
             print("Loading meta prompt...")
             self.metaPromptGenerator = MetaPromptGenerator(self.args)
@@ -106,7 +106,7 @@ class Manager():
             scores = []
             self.optimizer.init()
             
-            """
+           
             for j in range(self.args.instruction_per_step):
                 sol = self.optimizer.generate(meta_prompt)
                 solutions.append(sol)
@@ -134,14 +134,14 @@ class Manager():
                 results = [result['score'] for result in results]
 
                 scores.extend(results)
-            """
+       
             scores = [a * i + self.args.instruction_per_step for a in range(self.args.instruction_per_step)]
             prompt_score_pair = self.make_prompt_score_pair(solutions, scores)
             self.metaPromptGenerator.update_meta_prompt(prompt_score_pair)
 
             # Log
-            #wandb.log({"CIDEr": mean(scores)})
-            #self.update_prompt_log()
+            wandb.log({"CIDEr": mean(scores)})
+            self.update_prompt_log()
 
             # Checkpoint
             if self.args.checkpoint_per_step:
@@ -173,7 +173,6 @@ def main():
     # End training
 
     # Output files
-
     # Results of top_pairs
     top_pairs = manager.metaPromptGenerator.get_top_pairs()
     json.dump(top_pairs, open(f'{args.output_dir}/top_pairs.json', 'w'), indent=4)
