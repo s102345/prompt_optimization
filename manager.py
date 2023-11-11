@@ -102,7 +102,7 @@ class Manager():
             # Receive meta-prompt
             meta_prompt = self.metaPromptGenerator.generate_meta_prompt()
             # Use meta-prompt to generate solutions
-            solutions = [f"{chr(a)}_{i}" for a in range(self.args.instruction_per_step)]
+            solutions = []
             scores = []
             self.optimizer.init()
             
