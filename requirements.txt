@@ -23,3 +23,5 @@ wget
 gdown
 python-dotenv
 multiprocess
+tenacity
+dill
