@@ -25,3 +25,5 @@ python-dotenv
 multiprocess
 tenacity
 dill
+faiss-gpu
+git+https://github.com/openai/CLIP.git

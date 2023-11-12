@@ -113,27 +113,31 @@ class Manager():
 
             self.scorer.do_sample()
             
+            if self.args.num_processes == 1:
+                for j in range(self.args.instruction_per_step):
+                    score = self.scorer.evaluate(solutions[j], -1)
+                    scores.append(score)
 
-            for j in range(0, self.args.instruction_per_step, self.args.num_processes):
-                num_processes = min(self.args.num_processes, self.args.instruction_per_step - j)
-                return_queue = mp.Queue()
-                processes = []
+            else:
+                for j in range(0, self.args.instruction_per_step, self.args.num_processes):
+                    num_processes = min(self.args.num_processes, self.args.instruction_per_step - j)
+                    return_queue = mp.Queue()
+                    processes = []
 
-                for rank in range(num_processes):
-                    prompt = solutions[j + rank]
-                    p = mp.Process(target=self.scorer.evaluate, args=(prompt, rank, return_queue, ))
-                    p.start()
-                    processes.append(p)
-                
-                results = [return_queue.get() for _ in range(num_processes)]
+                    for rank in range(num_processes):
+                        prompt = solutions[j + rank]
+                        p = mp.Process(target=self.scorer.evaluate, args=(prompt, rank, return_queue, ))
+                        p.start()
+                        processes.append(p)
+                    
+                    results = [return_queue.get() for _ in range(num_processes)]
 
-                for p in processes:
-                    p.join()
-                
-                results.sort(key=lambda x: x['rank'])
-                results = [result['score'] for result in results]
-
-                scores.extend(results)
+                    for p in processes:
+                        p.join()
+                    
+                    results.sort(key=lambda x: x['rank'])
+                    results = [result['score'] for result in results]
+                    scores.extend(results)
        
             prompt_score_pair = self.make_prompt_score_pair(solutions, scores)
             self.metaPromptGenerator.update_meta_prompt(prompt_score_pair)
