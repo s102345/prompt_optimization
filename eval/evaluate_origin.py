@@ -58,7 +58,8 @@ parser.add_argument(
     help="Number of samples to evaluate on. -1 for all samples.",
 )
 parser.add_argument("--query_set_size", type=int, default=2048, help="Size of demonstration query set")
-
+parser.add_argument("--prompt_example", type=str, default=None, help="Prompt to use for evaluation(part example)")
+parser.add_argument("--prompt_query", type=str, default=None, help="Prompt to use for evaluation(part query)")
 parser.add_argument("--batch_size", type=int, default=2)
 
 parser.add_argument(
@@ -326,13 +327,20 @@ def evaluate_captioning(
                 context_images = []
             batch_images.append(context_images + [batch["image"][i]])
 
-            context_text = "".join([eval_model.get_caption_prompt(caption=x["caption"].strip()) for x in batch_demo_samples[i]])
+            if args.prompt_example is not None:
+                context_text = "".join([eval_model.get_caption_prompt(prompt=args.prompt_example, caption=x["caption"].strip()) for x in batch_demo_samples[i]])
+            else:
+                context_text = "".join([eval_model.get_caption_prompt(caption=x["caption"].strip()) for x in batch_demo_samples[i]])
+
 
             # Keep the text but remove the image tags for the zero-shot case
             if num_shots == 0:
                 context_text = context_text.replace("<image>", "")
 
-            batch_text.append(context_text + eval_model.get_caption_prompt())
+            if args.prompt_query is not None:
+                batch_text.append(context_text + eval_model.get_caption_prompt(prompt=args.prompt_query))
+            else:
+                batch_text.append(context_text + eval_model.get_caption_prompt())
 
         outputs = eval_model.get_outputs(
             batch_images=batch_images,
