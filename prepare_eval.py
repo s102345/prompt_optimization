@@ -23,9 +23,9 @@ def download_files():
         gdown.download(file_links['captions_val2014'], f'{path}/captions_val2014.json', quiet=False)
 
     # Karpathy splits
-    if not os.path.exists(f'{path}/karpathy_coco.json'):
+    if not os.path.exists(f'{path}/karpathy_coco_for_eval.json'):
         print("Downloading splits file...")
-        gdown.download(file_links['karpathy_coco'], f'{path}/karpathy_coco.json', quiet=False)
+        gdown.download(file_links['karpathy_coco'], f'{path}/karpathy_coco_for_eval.json', quiet=False)
 
     # Download the COCO2014 dataset
     if not os.path.exists(f'{path}/train2014'):
