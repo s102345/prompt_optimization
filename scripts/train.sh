@@ -10,5 +10,4 @@ python ../manager.py \
 --num_samples 200 \
 --steps 5 \
 --initial_prompt "A Image of" \
---example_rule "rand" \
---extra_information \
+--example_rule "rand" 

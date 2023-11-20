@@ -11,14 +11,14 @@ import numpy as np
 import torch
 from sklearn.metrics import roc_auc_score
 
-from .coco_metric import compute_cider, postprocess_captioning_generation
-from .eval_datasets import CaptionDataset
+from coco_metric import compute_cider, postprocess_captioning_generation
+from eval_datasets import CaptionDataset
 from tqdm import tqdm
 
-from .eval_model import BaseEvalModel
+from eval_model import BaseEvalModel
 
-from .eval_utils import compute_effective_num_shots, get_query_set, prepare_eval_samples, sample_batch_demos_from_query_set, merge_args
-from .rices import RICES
+from eval_utils import compute_effective_num_shots, get_query_set, prepare_eval_samples, sample_batch_demos_from_query_set, merge_args
+from rices import RICES
 
 parser = argparse.ArgumentParser()
 
@@ -143,7 +143,7 @@ parser.add_argument(
 
 def main():
     args, leftovers = parser.parse_known_args()
-    module = importlib.import_module(f"eval.models.{args.model}")
+    module = importlib.import_module(f"models.{args.model}")
 
     model_args = {leftover.lstrip("-").split("=")[0]: leftover.split("=")[1] for leftover in leftovers}
     eval_model = module.EvalModel(model_args)
@@ -179,7 +179,7 @@ def main():
                     cached_features=cached_features,
                     min_generation_length=0,
                     max_generation_length=128,
-                    num_beams=3
+                    num_beams=1
                 )
                 print(f"Shots {shot} Trial {trial} CIDEr score: {cider_score}")
                 scores.append(cider_score)
@@ -210,7 +210,7 @@ def main():
                     cached_features=cached_features,
                     min_generation_length=0,
                     max_generation_length=64,
-                    num_beams=3
+                    num_beams=1
                 )
                 print(f"Shots {shot} Trial {trial} CIDEr score: {cider_score}")
                 scores.append(cider_score)
@@ -234,7 +234,7 @@ def evaluate_captioning(
     min_generation_length: int = 0,
     max_generation_length: int = 20,
     num_beams: int = 3,
-    length_penalty: float = -2.0,
+    length_penalty: float = 1.0,
     num_shots: int = 8,
     dataset_name: str = "coco",
     cached_features=None

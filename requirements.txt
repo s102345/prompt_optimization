@@ -1,5 +1,7 @@
 -i https://download.pytorch.org/whl/cu118
-torch==2.0.1+cu118 
+torch==2.1.0 
+torchvision==0.16.0 
+torchaudio==2.1.0 
 accelerate
 einops
 einops_exts
@@ -15,7 +17,7 @@ fire
 pycocotools
 Requests
 tqdm
-transformers
+git+https://github.com/huggingface/transformers
 peft
 wandb
 openai
@@ -26,4 +28,6 @@ multiprocess
 tenacity
 dill
 faiss-gpu
+xformers
+bitsandbytes==0.40.0
 git+https://github.com/openai/CLIP.git

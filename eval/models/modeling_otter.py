@@ -35,21 +35,17 @@ XFORMERS_MSG_PRINTED = False  # Add this global variable
 try:
     if not XFORMERS_MSG_PRINTED:  # Check if the message has been printed before
         import xformers.ops as xops
-        from xformers_model import CLIPVisionModel, LlamaForCausalLM
+        from .xformers_model import CLIPVisionModel, LlamaForCausalLM
         from transformers import LlamaTokenizer
-
         _xformers_version = importlib_metadata.version("xformers")
-        if dist.is_initialized() and dist.get_rank() == 0:  # Check if the current process rank is 0
-            print(f"Successfully imported xformers version {_xformers_version}")
+        print(f"Successfully imported xformers version {_xformers_version}")
 except ImportError as e:
     if not XFORMERS_MSG_PRINTED:  # Check if the message has been printed before
-        from transformers import CLIPVisionModel, LlamaForCausalLM, LlamaTokenizer
-
-        if dist.is_initialized() and dist.get_rank() == 0:  # Check if the current process rank is 0
-            print(f"Failed to import xformers: {e}")
-            XFORMERS_AVAIL = False
-            print("No xformers found. You are recommended to install xformers via `pip install xformers` or `conda install -c xformers xformers`")
-            XFORMERS_MSG_PRINTED = True  # Set the variable to True after printing the message
+        from transformers import CLIPVisionModel, LlamaForCausalLM, LlamaTokenizer       
+        print(f"Failed to import xformers: {e}")
+        XFORMERS_AVAIL = False
+        print("No xformers found. You are recommended to install xformers via `pip install xformers` or `conda install -c xformers xformers`")
+        XFORMERS_MSG_PRINTED = True  # Set the variable to True after printing the message
 
 # from transformers import CLIPVisionModel, LlamaForCausalLM, LlamaTokenizer
 

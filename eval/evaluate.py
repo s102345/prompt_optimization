@@ -191,7 +191,7 @@ def main(input_args, config):
                     cached_features=cached_features,
                     min_generation_length=0,
                     max_generation_length=128,
-                    num_beams=3,
+                    num_beams=1,
                     prompt=args.prompt,
                 )
                 print(f"Shots {shot} Trial {trial} CIDEr score: {cider_score}")
@@ -223,7 +223,7 @@ def main(input_args, config):
                     cached_features=cached_features,
                     min_generation_length=0,
                     max_generation_length=64,
-                    num_beams=3,
+                    num_beams=1,
                     prompt=args.prompt,
                 )
                 print(f"Shots {shot} Trial {trial} CIDEr score: {cider_score}")
@@ -248,7 +248,7 @@ def evaluate_captioning(
     min_generation_length: int = 0,
     max_generation_length: int = 20,
     num_beams: int = 3,
-    length_penalty: float = -2.0,
+    length_penalty: float = 1.0,
     num_shots: int = 8,
     dataset_name: str = "coco",
     cached_features=None,
