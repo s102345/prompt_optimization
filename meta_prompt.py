@@ -81,7 +81,7 @@ class MetaPromptGenerator():
 
     def update_optimization_task(self):
         old_prompt = json.load(open(f'{root}/tmp/meta_prompt.json', 'r'))
-
+        old_prompt['optimization task'] = []
         # Fetch info
         for i in range(self.args.optimization_task_number):
             tmp = []

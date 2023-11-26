@@ -85,7 +85,7 @@ class Manager():
             initial_score = self.scorer.evaluate(args.initial_prompt, -1)
             print(f"Initial score: {initial_score}")
             self.metaPromptGenerator = MetaPromptGenerator(self.args, self.make_prompt_score_pair([self.args.initial_prompt], [initial_score])) 
-            wandb.log({"CIDEr": initial_score})
+            wandb.log({"CIDEr": initial_score}, step=0)
         else:
             print("Loading meta prompt...")
             self.metaPromptGenerator = MetaPromptGenerator(self.args)
@@ -143,7 +143,7 @@ class Manager():
             self.metaPromptGenerator.update_meta_prompt(prompt_score_pair)
 
             # Log
-            wandb.log({"CIDEr": mean(scores)})
+            wandb.log({"CIDEr": mean(scores)}, step=i)
             self.update_prompt_log()
 
             # Checkpoint
