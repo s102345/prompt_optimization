@@ -69,7 +69,6 @@ def clip_filter(query, output_folder, indice_folder, num_results=100, threshold=
     for _, ei in zip(d, i):
         img_name = image_list[ei].split("/")[-1]
         img_path = os.path.join(path, 'train2014', img_name)
-        print(os.path.exists(img_path))
         if os.path.exists(img_path):
             shutil.copy(img_path, output_folder)
         if url_list is not None:
