@@ -2,7 +2,7 @@
 
 
 import fire
-
+from appdata import path
 
 def clip_filter(query, output_folder, indice_folder, num_results=100, threshold=None):
     """Entry point of clip filter"""
@@ -67,9 +67,11 @@ def clip_filter(query, output_folder, indice_folder, num_results=100, threshold=
     print(f"Copying the images in {output_folder}")
 
     for _, ei in zip(d, i):
-        path = image_list[ei]
-        if os.path.exists(path):
-            shutil.copy(path, output_folder)
+        img_name = image_list[ei].split("/")[-1]
+        img_path = os.path.join(path, 'train2014', img_name)
+        print(os.path.exists(img_path))
+        if os.path.exists(img_path):
+            shutil.copy(img_path, output_folder)
         if url_list is not None:
             print(url_list[ei])
 
